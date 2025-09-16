@@ -140,6 +140,9 @@ const SupportPage = () => {
         throw new Error('EmailJS 설정이 필요합니다.');
       }
 
+      // EmailJS 초기화
+      emailjs.init(publicKey);
+
       const result = await emailjs.send(
         serviceId,
         templateId,
@@ -149,8 +152,8 @@ const SupportPage = () => {
           from_email: emailFormData.email,
           subject: emailFormData.subject,
           message: emailFormData.message,
-        },
-        publicKey
+          reply_to: emailFormData.email,
+        }
       );
 
       if (result.status === 200) {

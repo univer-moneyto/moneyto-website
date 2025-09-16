@@ -28,6 +28,9 @@ const AdvertisingSection = () => {
         throw new Error('EmailJS 설정이 필요합니다.');
       }
 
+      // EmailJS 초기화
+      emailjs.init(publicKey);
+
       // 이메일 발송
       const result = await emailjs.send(
         serviceId,
@@ -41,8 +44,8 @@ const AdvertisingSection = () => {
           budget: formData.budget,
           message: formData.message,
           subject: `[머니또] 광고 문의 - ${formData.company}`,
-        },
-        publicKey
+          reply_to: formData.email,
+        }
       );
 
       if (result.status === 200) {
