@@ -1,8 +1,4 @@
 import { motion } from 'framer-motion';
-import { MapPin, Gift, Smartphone } from 'lucide-react';
-import coinImage from '../assets/coin.png';
-import mapImage from '../assets/map.png';
-import giftImage from '../assets/gift.png';
 import homeNbImage from '../assets/home_nb.png';
 
 const HeroSection = () => {

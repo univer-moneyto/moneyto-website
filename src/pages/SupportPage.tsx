@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Phone, Headphones, ChevronDown, Search, HelpCircle, Lightbulb, X, Send } from 'lucide-react';
+import { Mail, Phone, Headphones, ChevronDown, Search, HelpCircle, X, Send } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
 const SupportPage = () => {
@@ -119,7 +119,6 @@ const SupportPage = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const popularFaqs = faqs.filter(faq => faq.popular);
 
   const handleEmailFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setEmailFormData({

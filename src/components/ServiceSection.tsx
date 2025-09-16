@@ -1,37 +1,6 @@
 import { motion } from "framer-motion";
-import { MapPin, Coins, Gift, Star } from "lucide-react";
 
 const ServiceSection = () => {
-  const features = [
-    {
-      icon: MapPin,
-      title: "실시간 위치 기반 탐험",
-      description:
-        "당신의 위치를 중심으로 지도상에 무작위로 생성되는 포인트를 찾아 모험을 떠나보세요",
-      gradient: "from-primary-500 to-accent-500",
-    },
-    {
-      icon: Coins,
-      title: "포인트 수집 시스템",
-      description:
-        "지도상의 포인트를 수집하고 축적하여 다양한 아이템과 기프티콘으로 교환하세요",
-      gradient: "from-primary-400 to-primary-600",
-    },
-    {
-      icon: Gift,
-      title: "리워드 스토어",
-      description:
-        "모은 포인트로 실제 기프티콘, 할인쿠폰, 다양한 아이템을 구매할 수 있습니다",
-      gradient: "from-accent-500 to-accent-600",
-    },
-    {
-      icon: Star,
-      title: "펫 육성 & 꾸미기",
-      description:
-        "귀여운 펫을 키우고 다양한 스킨과 아이템으로 나만의 펫을 꾸며보세요",
-      gradient: "from-primary-600 to-accent-400",
-    },
-  ];
 
   return (
     <section

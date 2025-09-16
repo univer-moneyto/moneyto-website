@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 export const useScrollSnap = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeout = useRef<NodeJS.Timeout>();
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let ticking = false;

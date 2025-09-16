@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
 
 // Import pet images
 import pet01 from "../assets/pet01.png";
@@ -28,10 +27,6 @@ import fireIcon from "../assets/fire.png";
 
 // Import skin images
 import skin01 from "../assets/skin01.png";
-import skin02 from "../assets/skin02.png";
-import skin03 from "../assets/skin03.png";
-import skin04 from "../assets/skin04.png";
-import skin05 from "../assets/skin05.png";
 
 // Import snow skin images
 import skin_snow01 from "../assets/skin_snow01.png";
@@ -250,16 +245,6 @@ const PetSection = () => {
   ];
 
   // 테마별 빈 카드 데이터 (나중에 실제 이미지로 교체 예정)
-  const createEmptyCards = (count: number, theme: string) => {
-    return Array.from({ length: count }, (_, index) => ({
-      id: `${theme}-${index}`,
-      name: `${theme} 캐릭터 ${index + 1}`,
-      bgGradient: "linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)",
-      nameTagColor: "#D1D5DB",
-      textColor: "#6B7280",
-      stats: { health: 0, speed: 0, power: 0 },
-    }));
-  };
 
   // Winter themed pets data
   const winterPets = [

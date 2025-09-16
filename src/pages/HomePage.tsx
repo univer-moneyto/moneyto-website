@@ -6,7 +6,6 @@ import GiftCardSection from "../components/DownloadSection";
 import { useScrollSnap } from "../hooks/useScrollSnap";
 
 const HomePage = () => {
-  const currentSection = 0;
   useScrollSnap();
 
   return (
