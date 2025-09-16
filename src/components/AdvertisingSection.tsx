@@ -17,11 +17,36 @@ const AdvertisingSection = () => {
   useEffect(() => {
     // EmailJS 초기화를 컴포넌트 마운트 시 한번만 수행
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    
+    console.log('AdvertisingSection EmailJS Environment Check:', {
+      publicKey: publicKey ? `${publicKey.substring(0, 5)}...` : 'missing',
+      serviceId: serviceId || 'missing',
+      templateId: templateId || 'missing'
+    });
+    
     if (publicKey) {
-      emailjs.init(publicKey);
-      console.log('EmailJS initialized on component mount');
+      try {
+        emailjs.init({
+          publicKey: publicKey,
+          blockHeadless: true,
+          blockList: {
+            list: [],
+            watchVariable: 'userAgent'
+          },
+          limitRate: {
+            throttle: 2000
+          }
+        });
+        console.log('AdvertisingSection EmailJS initialized successfully with advanced options');
+      } catch (initError) {
+        console.error('AdvertisingSection EmailJS initialization failed:', initError);
+        emailjs.init(publicKey);
+        console.log('AdvertisingSection EmailJS initialized with basic config as fallback');
+      }
     } else {
-      console.error('EmailJS public key not found');
+      console.error('AdvertisingSection EmailJS public key not found - check environment variables');
     }
   }, []);
 
@@ -49,32 +74,77 @@ const AdvertisingSection = () => {
         return;
       }
 
+      // 이메일 형식 검증
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        alert('올바른 이메일 주소를 입력해주세요.');
+        return;
+      }
+
       console.log('Sending email with data:', formData);
 
-      // 템플릿 매개변수 정확히 설정
+      // 템플릿 매개변수 정확히 설정 - 다양한 EmailJS 템플릿 형식에 대응
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
+        user_name: formData.name,
+        user_email: formData.email,
         company: formData.company,
         phone: formData.phone,
         budget: formData.budget,
         message: formData.message,
+        user_message: formData.message,
         subject: `[머니또] 광고 문의 - ${formData.company}`,
         to_name: '머니또 팀',
         reply_to: formData.email,
+        // 추가 표준 필드들
+        name: formData.name,
+        email: formData.email,
+        inquiry_type: '광고 문의',
+        timestamp: new Date().toLocaleString('ko-KR')
       };
 
       console.log('Template params:', templateParams);
 
-      const result = await emailjs.send(
-        serviceId,
-        templateId,
-        templateParams
-      );
+      // 재시도 로직이 포함된 이메일 전송 함수
+      const sendEmailWithRetry = async (maxRetries = 3) => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`Advertising email sending attempt ${attempt}/${maxRetries}`);
+            
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('요청 시간이 초과되었습니다')), 15000);
+            });
+
+            const sendPromise = emailjs.send(
+              serviceId,
+              templateId,
+              templateParams
+            );
+
+            const result = await Promise.race([sendPromise, timeoutPromise]);
+            console.log(`Advertising email sent successfully on attempt ${attempt}:`, result);
+            return result;
+            
+          } catch (error) {
+            console.error(`Advertising email sending attempt ${attempt} failed:`, error);
+            
+            if (attempt === maxRetries) {
+              throw error;
+            }
+            
+            const delay = attempt * 2000;
+            console.log(`Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      };
+
+      const result = await sendEmailWithRetry() as { status: number; text: string };
 
       console.log('EmailJS result:', result);
 
-      if (result.status === 200) {
+      if (result && result.status === 200) {
         alert('광고 문의가 성공적으로 전송되었습니다. 빠른 시일 내에 연락드리겠습니다.');
         setFormData({
           company: '',
@@ -85,14 +155,33 @@ const AdvertisingSection = () => {
           message: ''
         });
       } else {
-        throw new Error(`Unexpected status: ${result.status}`);
+        throw new Error(`Unexpected status: ${result?.status || 'unknown'}`);
       }
     } catch (error) {
-      console.error('Email sending failed:', error);
+      console.error('Advertising email sending failed:', error);
+      
+      let errorMessage = '광고 문의 전송 중 오류가 발생했습니다.';
+      
       if (error instanceof Error) {
         console.error('Error details:', error.message);
+        
+        // 구체적인 에러 메시지 제공
+        if (error.message.includes('요청 시간이 초과')) {
+          errorMessage = '요청 시간이 초과되었습니다. 인터넷 연결을 확인하고 다시 시도해주세요.';
+        } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+          errorMessage = '네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해주세요.';
+        } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+          errorMessage = '입력한 정보에 문제가 있습니다. 모든 필드를 올바르게 입력했는지 확인해주세요.';
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          errorMessage = '인증에 문제가 있습니다. 관리자에게 문의해주세요.';
+        } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+          errorMessage = '접근 권한이 없습니다. 관리자에게 문의해주세요.';
+        } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
+          errorMessage = '서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.';
+        }
       }
-      alert('문의 전송 중 오류가 발생했습니다. 직접 연락주시거나 다시 시도해주세요.');
+      
+      alert(errorMessage + ' 문제가 지속되면 직접 이메일(univerfirm@gmail.com) 또는 전화(1644-0815)로 연락주세요.');
     } finally {
       setIsSubmitting(false);
     }
