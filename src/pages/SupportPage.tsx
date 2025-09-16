@@ -22,7 +22,7 @@ const SupportPage = () => {
     // EmailJS 초기화를 컴포넌트 마운트 시 한번만 수행
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-    const templateId = import.meta.env.VITE_EMAILJS_SUPPORT_TEMPLATE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     
     console.log('EmailJS Environment Check:', {
       publicKey: publicKey ? `${publicKey.substring(0, 5)}...` : 'missing',
@@ -169,7 +169,7 @@ const SupportPage = () => {
     try {
       // 환경변수 확인
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-      const templateId = import.meta.env.VITE_EMAILJS_SUPPORT_TEMPLATE_ID;
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
       console.log('EmailJS Config:', { serviceId, templateId, publicKey: publicKey ? 'exists' : 'missing' });
@@ -195,15 +195,18 @@ const SupportPage = () => {
 
       console.log('Sending email with data:', emailFormData);
 
-      // 템플릿 매개변수 정확히 설정 - 다양한 EmailJS 템플릿 형식에 대응
+      // 템플릿 매개변수 정확히 설정 - 광고 섹션과 동일한 형식으로 통일
       const templateParams = {
         from_name: emailFormData.name,
         from_email: emailFormData.email,
-        user_name: emailFormData.name, // 대체 필드명
-        user_email: emailFormData.email, // 대체 필드명
-        subject: emailFormData.subject || '고객센터 문의',
+        user_name: emailFormData.name,
+        user_email: emailFormData.email,
+        company: emailFormData.name + ' (고객센터 문의)', // 회사명 대신 이름 + 구분
+        phone: '', // 고객센터에는 전화번호 필드가 없음
+        budget: '', // 고객센터에는 예산 필드가 없음
         message: emailFormData.message,
-        user_message: emailFormData.message, // 대체 필드명
+        user_message: emailFormData.message,
+        subject: emailFormData.subject || '고객센터 문의',
         to_name: '머니또 팀',
         reply_to: emailFormData.email,
         // 추가 표준 필드들
