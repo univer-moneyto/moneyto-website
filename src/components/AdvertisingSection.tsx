@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Building, Users, Target, TrendingUp } from 'lucide-react';
 import emailjs from '@emailjs/browser';
@@ -14,39 +14,65 @@ const AdvertisingSection = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    // EmailJS 초기화를 컴포넌트 마운트 시 한번만 수행
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    if (publicKey) {
+      emailjs.init(publicKey);
+      console.log('EmailJS initialized on component mount');
+    } else {
+      console.error('EmailJS public key not found');
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // EmailJS 설정
+      // 환경변수 확인
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
       const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+      console.log('EmailJS Config:', { serviceId, templateId, publicKey: publicKey ? 'exists' : 'missing' });
+
       if (!serviceId || !templateId || !publicKey) {
-        throw new Error('EmailJS 설정이 필요합니다.');
+        console.error('Missing EmailJS configuration');
+        alert('이메일 설정에 문제가 있습니다. 관리자에게 문의하세요.');
+        return;
       }
 
-      // EmailJS 초기화
-      emailjs.init(publicKey);
+      // 폼 데이터 검증
+      if (!formData.company.trim() || !formData.name.trim() || !formData.email.trim()) {
+        alert('필수 항목을 모두 입력해주세요.');
+        return;
+      }
 
-      // 이메일 발송
+      console.log('Sending email with data:', formData);
+
+      // 템플릿 매개변수 정확히 설정
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        company: formData.company,
+        phone: formData.phone,
+        budget: formData.budget,
+        message: formData.message,
+        subject: `[머니또] 광고 문의 - ${formData.company}`,
+        to_name: '머니또 팀',
+        reply_to: formData.email,
+      };
+
+      console.log('Template params:', templateParams);
+
       const result = await emailjs.send(
         serviceId,
         templateId,
-        {
-          to_email: 'univerfirm@gmail.com',
-          from_name: formData.name,
-          from_email: formData.email,
-          company: formData.company,
-          phone: formData.phone,
-          budget: formData.budget,
-          message: formData.message,
-          subject: `[머니또] 광고 문의 - ${formData.company}`,
-          reply_to: formData.email,
-        }
+        templateParams
       );
+
+      console.log('EmailJS result:', result);
 
       if (result.status === 200) {
         alert('광고 문의가 성공적으로 전송되었습니다. 빠른 시일 내에 연락드리겠습니다.');
@@ -58,9 +84,14 @@ const AdvertisingSection = () => {
           budget: '',
           message: ''
         });
+      } else {
+        throw new Error(`Unexpected status: ${result.status}`);
       }
     } catch (error) {
       console.error('Email sending failed:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
       alert('문의 전송 중 오류가 발생했습니다. 직접 연락주시거나 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
